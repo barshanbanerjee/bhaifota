@@ -1,7 +1,7 @@
 import { Controller, Post, Param, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { InvitationsService } from './invitations.service';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 @Controller('invitations')
 export class InvitationsController {

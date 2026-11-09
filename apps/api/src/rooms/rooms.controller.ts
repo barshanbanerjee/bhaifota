@@ -2,7 +2,7 @@ import { Controller, Post, Get, Body, Param, UseGuards, Req, HttpCode, NotFoundE
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RoomsService } from './rooms.service';
 import { IsEmail, IsIn } from 'class-validator';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 class CreateRoomDto {
   @IsIn(['BROTHER', 'SISTER'])
