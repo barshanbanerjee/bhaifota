@@ -23,7 +23,7 @@ async function bootstrap() {
     }),
   );
 
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix(process.env.API_PREFIX || 'api');
 
   const allowedOrigins = [
     process.env.WEB_URL,

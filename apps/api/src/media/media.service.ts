@@ -30,7 +30,7 @@ export class MediaService {
       room: `bhaifota_${roomId}`,
       canPublish: true,
       canSubscribe: true,
-      canPublishData: false,
+      canPublishData: true,
     });
 
     return { token: await token.toJwt(), roomName: `bhaifota_${roomId}` };

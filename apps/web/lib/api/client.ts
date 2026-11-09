@@ -1,4 +1,15 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+function getBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return process.env.NEXT_PUBLIC_API_URL || '/api';
+  }
+  // Server-side: use the Vercel internal service binding URL if injected
+  const internalUrl = process.env.API_URL;
+  if (internalUrl) {
+    const cleanUrl = internalUrl.replace(/\/$/, '');
+    return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+  }
+  return process.env.NEXT_PUBLIC_API_URL || '/api';
+}
 
 class ApiClient {
   private getToken(): string | null {
@@ -27,7 +38,8 @@ class ApiClient {
       ...(options?.headers as Record<string, string>),
     };
 
-    const res = await fetch(`${API_URL}${path}`, {
+    const baseUrl = getBaseUrl();
+    const res = await fetch(`${baseUrl}${path}`, {
       credentials: 'include',
       headers,
       ...options,
