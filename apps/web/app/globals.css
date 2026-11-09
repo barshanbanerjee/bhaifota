@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #c2185b;
+  --color-accent-light: #f48fb1;
+  --color-gold: #f9a825;
+}
+
+:root {
+  --background: #fdf6f0;
+  --foreground: #1a0a00;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
