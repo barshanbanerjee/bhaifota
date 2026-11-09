@@ -17,7 +17,11 @@ declare global {
   }
 }
 
-export function GoogleSignInButton() {
+interface GoogleSignInButtonProps {
+  onSuccess?: () => void;
+}
+
+export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps = {}) {
   const router = useRouter();
   const divRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -27,12 +31,16 @@ export function GoogleSignInButton() {
     async (response: { credential: string }) => {
       try {
         await api.auth.google(response.credential);
-        router.push('/dashboard');
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push('/dashboard');
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     },
-    [router],
+    [router, onSuccess],
   );
 
   useEffect(() => {

@@ -3,9 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { LiveKitRoom } from '@livekit/components-react';
 import { useRoomStore } from '@/stores/roomStore';
-import { useSocket } from '@/hooks/useSocket';
+import { useLiveKitSync } from '@/hooks/useLiveKitSync';
 import { api } from '@/lib/api/client';
-import { connectSocket } from '@/lib/socket';
 import { WaitingRoom } from '@/components/connection/WaitingRoom';
 import { VideoGrid } from '@/components/media/VideoGrid';
 import { RitualTray } from './RitualTray';
@@ -17,53 +16,17 @@ interface RoomPageClientProps {
   code: string;
 }
 
-function generateEventId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
-export function RoomPageClient({ code }: RoomPageClientProps) {
+function RitualStageRoom({
+  roomId,
+  currentUserId,
+}: {
+  roomId: string;
+  currentUserId: string;
+}) {
   const router = useRouter();
-  const { roomId, status, participants, pendingRestart } = useRoomStore();
-  const [liveKitToken, setLiveKitToken] = useState<string | null>(null);
-  const [livekitUrl] = useState(process.env.NEXT_PUBLIC_LIVEKIT_URL || '');
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Connect socket
-  const socket = useSocket(roomId);
-
-  useEffect(() => {
-    // Load current user and room state
-    const init = async () => {
-      try {
-        const user = await api.users.me();
-        setCurrentUserId(user.id);
-        connectSocket();
-      } catch {
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, [router]);
-
-  const fetchLiveKitToken = useCallback(async () => {
-    if (!roomId) return;
-    try {
-      const { token } = await api.rooms.mediaToken(roomId);
-      setLiveKitToken(token);
-    } catch (err) {
-      setError('Failed to get media token');
-    }
-  }, [roomId]);
-
-  const handleReady = useCallback(async () => {
-    setIsReady(true);
-    await fetchLiveKitToken();
-  }, [fetchLiveKitToken]);
+  const { participants, pendingRestart } = useRoomStore();
+  const { sendInteraction, requestRestart, confirmRestart, endSession } =
+    useLiveKitSync(roomId);
 
   const myParticipant = participants.find((p) => p.userId === currentUserId);
   const otherParticipant = participants.find((p) => p.userId !== currentUserId);
@@ -75,99 +38,32 @@ export function RoomPageClient({ code }: RoomPageClientProps) {
       targetParticipantId: string;
       position: { x: number; y: number };
     }) => {
-      if (!roomId || !socket) return;
-      socket.emit('ritual:interaction:submit', {
-        eventId: generateEventId(),
-        roomId,
-        ...params,
-      });
+      sendInteraction(params);
     },
-    [roomId, socket],
+    [sendInteraction]
   );
 
-  const handleRestartRequest = () => {
-    if (!roomId || !socket) return;
-    socket.emit('session:restart:request', { roomId });
-  };
-
-  const handleRestartConfirm = () => {
-    if (!roomId || !socket) return;
-    socket.emit('session:restart:confirm', { roomId });
-  };
-
-  const handleEndSession = () => {
-    if (!roomId || !socket) return;
-    socket.emit('session:end', { roomId });
+  const handleEndSession = async () => {
+    await endSession();
     router.push('/dashboard');
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-foreground/40">Loading your room…</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500">{error}</div>
-      </div>
-    );
-  }
-
-  if (status === 'COMPLETED' || status === 'EXPIRED') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="text-5xl">🌸</div>
-          <h2 className="text-2xl font-bold">Bhaifota complete</h2>
-          <p className="text-foreground/60">The session has ended.</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="px-6 py-3 rounded-xl bg-accent text-white font-bold"
-          >
-            Back to dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isReady || !liveKitToken) {
-    return (
-      <WaitingRoom
-        roomId={roomId ?? ''}
-        code={code}
-        onReady={handleReady}
-      />
-    );
-  }
-
   return (
-    <LiveKitRoom
-      serverUrl={livekitUrl}
-      token={liveKitToken}
-      connect={true}
-      video={true}
-      audio={true}
-      className="h-screen flex flex-col bg-black"
-    >
+    <>
       {/* Restart confirmation banner */}
       {pendingRestart && pendingRestart.requestedBy !== currentUserId && (
-        <div className="fixed inset-x-0 top-0 z-50 bg-yellow-400 text-black px-6 py-4 flex items-center justify-between">
+        <div className="fixed inset-x-0 top-0 z-50 bg-yellow-400 text-black px-6 py-4 flex items-center justify-between shadow-md">
           <span className="font-semibold">Your sibling wants to restart — do you agree?</span>
           <div className="flex gap-3">
             <button
-              onClick={handleRestartConfirm}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold"
+              onClick={confirmRestart}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
             >
               Yes, restart
             </button>
             <button
               onClick={() => useRoomStore.getState().setPendingRestart(null)}
-              className="px-4 py-2 bg-black/20 rounded-lg font-bold"
+              className="px-4 py-2 bg-black/20 rounded-lg font-bold hover:bg-black/30 transition-colors"
             >
               No
             </button>
@@ -199,17 +95,17 @@ export function RoomPageClient({ code }: RoomPageClientProps) {
           <RitualTray
             role={myParticipant.role}
             targetParticipantId={otherParticipant.userId}
-            roomId={roomId ?? ''}
+            roomId={roomId}
             onInteraction={handleInteraction}
           />
         )}
 
         <div className="flex gap-2">
           {pendingRestart?.requestedBy === currentUserId ? (
-            <span className="text-sm text-yellow-400">Waiting for sibling to confirm…</span>
+            <span className="text-sm text-yellow-400 self-center">Waiting for sibling to confirm…</span>
           ) : (
             <button
-              onClick={handleRestartRequest}
+              onClick={requestRestart}
               className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm hover:bg-white/20 transition-colors"
             >
               Restart
@@ -223,7 +119,116 @@ export function RoomPageClient({ code }: RoomPageClientProps) {
           </button>
         </div>
       </div>
-    </LiveKitRoom>
+    </>
   );
 }
 
+export function RoomPageClient({ code }: RoomPageClientProps) {
+  const router = useRouter();
+  const { roomId, status } = useRoomStore();
+  const [liveKitToken, setLiveKitToken] = useState<string | null>(null);
+  const [livekitUrl] = useState(process.env.NEXT_PUBLIC_LIVEKIT_URL || '');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Load current user and room state
+    const init = async () => {
+      try {
+        const user = await api.users.me();
+        setCurrentUserId(user.id);
+
+        const roomData = await api.rooms.get(code);
+        useRoomStore.getState().applySnapshot({
+          roomId: roomData.id,
+          code: roomData.code,
+          status: roomData.status as any,
+          revision: 1,
+          participants: (roomData as any).participants || [],
+          interactions: [],
+        });
+      } catch (err) {
+        console.error('Room init failed:', err);
+        router.push('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
+  }, [code, router]);
+
+  const fetchLiveKitToken = useCallback(async (activeRoomId: string) => {
+    try {
+      const { token } = await api.rooms.mediaToken(activeRoomId);
+      setLiveKitToken(token);
+    } catch (err) {
+      setError('Failed to get media token');
+    }
+  }, []);
+
+  const handleReady = useCallback(async () => {
+    const activeRoomId = useRoomStore.getState().roomId || roomId;
+    if (!activeRoomId) return;
+    setIsReady(true);
+    await fetchLiveKitToken(activeRoomId);
+  }, [roomId, fetchLiveKitToken]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-foreground/40">Loading your room…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (status === 'COMPLETED' || status === 'EXPIRED') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-5xl">🌸</div>
+          <h2 className="text-2xl font-bold">Bhaifota complete</h2>
+          <p className="text-foreground/60">The session has ended.</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-6 py-3 rounded-xl bg-accent text-white font-bold hover:bg-pink-700 transition-colors"
+          >
+            Back to dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isReady || !liveKitToken) {
+    return (
+      <WaitingRoom
+        roomId={roomId ?? ''}
+        code={code}
+        onReady={handleReady}
+      />
+    );
+  }
+
+  return (
+    <LiveKitRoom
+      serverUrl={livekitUrl}
+      token={liveKitToken}
+      connect={true}
+      video={true}
+      audio={true}
+      className="h-screen flex flex-col bg-black"
+    >
+      <RitualStageRoom roomId={roomId ?? ''} currentUserId={currentUserId ?? ''} />
+    </LiveKitRoom>
+  );
+}

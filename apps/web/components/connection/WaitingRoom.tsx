@@ -1,7 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRoomStore } from '@/stores/roomStore';
-import { getSocket } from '@/lib/socket';
 
 interface WaitingRoomProps {
   roomId: string;
@@ -24,8 +23,6 @@ export function WaitingRoom({ roomId, code, onReady }: WaitingRoomProps) {
   };
 
   const handleReady = () => {
-    const socket = getSocket();
-    socket.emit('participant:ready', { roomId });
     onReady();
   };
 

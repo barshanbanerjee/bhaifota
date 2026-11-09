@@ -1,10 +1,21 @@
 {
   "name": "bhaifota",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "prisma",
+      "@prisma/client",
+      "@prisma/engines"
+    ]
+  },
   "scripts": {
-    "dev": "concurrently \"pnpm --filter @bhaifota/web dev\" \"pnpm --filter @bhaifota/api start:dev\"",
-    "build": "pnpm --filter @bhaifota/web build && pnpm --filter @bhaifota/api build",
+    "dev": "pnpm --filter @bhaifota/web dev",
+    "build": "pnpm --filter @bhaifota/web build",
     "lint": "pnpm -r lint"
   },
   "devDependencies": {

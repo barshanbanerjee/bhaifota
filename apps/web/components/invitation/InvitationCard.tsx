@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { useAuth } from '@/hooks/useAuth';
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 export function CreateRoomForm() {
   const router = useRouter();
@@ -132,6 +134,7 @@ export function CreateRoomForm() {
 
 export function InviteAccept({ token }: { token: string }) {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -159,17 +162,38 @@ export function InviteAccept({ token }: { token: string }) {
             You've been invited to celebrate Bhaifota together.
           </p>
         </div>
+
         {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button
-          onClick={handleAccept}
-          disabled={loading}
-          className="w-full py-3 rounded-xl bg-accent text-white font-bold text-lg disabled:opacity-50 hover:bg-pink-700 transition-colors"
-        >
-          {loading ? 'Joining...' : 'Accept & Join →'}
-        </button>
-        <p className="text-xs text-foreground/40">
-          You'll be asked to sign in with Google to verify your identity.
-        </p>
+
+        {authLoading ? (
+          <div className="text-sm text-foreground/40 py-4">Checking session…</div>
+        ) : user ? (
+          <div className="space-y-4">
+            <div className="bg-background rounded-xl p-3 flex items-center gap-3 text-left">
+              {user.image && (
+                <img src={user.image} alt={user.name} className="w-8 h-8 rounded-full" />
+              )}
+              <div className="overflow-hidden">
+                <div className="text-xs font-semibold text-foreground/50">Signed in as</div>
+                <div className="text-sm font-medium truncate">{user.name} ({user.email})</div>
+              </div>
+            </div>
+            <button
+              onClick={handleAccept}
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-accent text-white font-bold text-lg disabled:opacity-50 hover:bg-pink-700 transition-colors"
+            >
+              {loading ? 'Joining...' : 'Accept & Join →'}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-foreground/70">
+              Please sign in with Google using the invited email to join.
+            </p>
+            <GoogleSignInButton onSuccess={handleAccept} />
+          </div>
+        )}
       </div>
     </div>
   );

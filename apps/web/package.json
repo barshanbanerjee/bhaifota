@@ -3,32 +3,38 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build --webpack",
+    "dev": "next dev --webpack",
+    "build": "prisma generate && next build --webpack",
     "start": "next start",
     "lint": "eslint ."
   },
   "dependencies": {
     "@bhaifota/shared": "workspace:*",
     "@livekit/components-react": "^2.0.0",
+    "@prisma/client": "^6.0.0",
     "@tanstack/react-query": "^5.0.0",
     "framer-motion": "^12.0.0",
+    "google-auth-library": "^11.3.3",
+    "jsonwebtoken": "^9.0.3",
     "livekit-client": "^2.0.0",
+    "livekit-server-sdk": "^2.19.2",
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "socket.io-client": "^4.8.0",
+    "resend": "^6.37.0",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.5",
     "@tailwindcss/turbopack": "^4",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
     "postcss": "^8.5.32",
+    "prisma": "^6.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
