@@ -24,7 +24,11 @@ export class InvitationsService {
   }
 
   async sendInvitationEmail(invitedEmail: string, creatorName: string, rawToken: string) {
-    const webUrl = this.config.get<string>('WEB_URL', 'http://localhost:3000');
+    const webUrl =
+      this.config.get<string>('WEB_URL') ||
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : 'http://localhost:3000');
     const inviteUrl = `${webUrl}/invite/${rawToken}`;
     const fromEmail = this.config.get<string>('EMAIL_FROM') || 'Bhaifota <onboarding@resend.dev>';
     console.log(`[InvitationsService] Dispatching invitation to ${invitedEmail} via ${fromEmail}...`);

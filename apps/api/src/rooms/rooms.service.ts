@@ -70,7 +70,11 @@ export class RoomsService {
       raw,
     );
 
-    const webUrl = this.config.get<string>('WEB_URL', 'http://localhost:3000');
+    const webUrl =
+      this.config.get<string>('WEB_URL') ||
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : 'http://localhost:3000');
     const inviteUrl = `${webUrl}/invite/${raw}`;
 
     return { room, invitedRole, inviteUrl };

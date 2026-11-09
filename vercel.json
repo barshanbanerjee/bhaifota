@@ -3,15 +3,7 @@
   "services": {
     "api": {
       "root": "apps/api",
-      "framework": "nestjs",
-      "bindings": [
-        {
-          "type": "service",
-          "service": "web",
-          "format": "url",
-          "env": "WEB_URL"
-        }
-      ]
+      "framework": "nestjs"
     },
     "web": {
       "root": "apps/web",
