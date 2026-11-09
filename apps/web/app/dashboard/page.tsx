@@ -1,6 +1,7 @@
 'use client';
 import { CreateRoomForm } from '@/components/invitation/InvitationCard';
 import { useAuth } from '@/hooks/useAuth';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export default function DashboardPage() {
   const { user, loading, logout } = useAuth({ requireAuth: true });
@@ -19,17 +20,7 @@ export default function DashboardPage() {
         <span className="text-2xl font-bold text-accent">ভাইফোঁটা</span>
         {user && (
           <div className="flex items-center gap-3">
-            {user.image ? (
-              <img
-                src={user.image}
-                alt={user.name}
-                className="w-8 h-8 rounded-full border border-black/10"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-accent/10 text-accent font-bold flex items-center justify-center text-xs">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <UserAvatar image={user.image} name={user.name} size="sm" />
             <span className="text-sm font-medium hidden sm:inline">{user.name}</span>
             <button
               onClick={logout}

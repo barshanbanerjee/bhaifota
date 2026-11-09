@@ -10,6 +10,7 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "ভাইফোঁটা — Bhaifota",
   description: "Celebrate Bhaifota together, wherever you are.",
+  referrer: "no-referrer",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

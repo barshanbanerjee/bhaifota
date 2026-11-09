@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { useAuth } from '@/hooks/useAuth';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function CreateRoomForm() {
   const router = useRouter();
@@ -170,9 +171,7 @@ export function InviteAccept({ token }: { token: string }) {
         ) : user ? (
           <div className="space-y-4">
             <div className="bg-background rounded-xl p-3 flex items-center gap-3 text-left">
-              {user.image && (
-                <img src={user.image} alt={user.name} className="w-8 h-8 rounded-full" />
-              )}
+              <UserAvatar image={user.image} name={user.name} size="sm" />
               <div className="overflow-hidden">
                 <div className="text-xs font-semibold text-foreground/50">Signed in as</div>
                 <div className="text-sm font-medium truncate">{user.name} ({user.email})</div>

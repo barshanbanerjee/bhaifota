@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRoomStore } from '@/stores/roomStore';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 interface WaitingRoomProps {
   roomId: string;
@@ -39,9 +40,7 @@ export function WaitingRoom({ roomId, code, onReady }: WaitingRoomProps) {
           <div className="space-y-2">
             {participants.map((p) => (
               <div key={p.userId} className="flex items-center gap-3 p-3 rounded-xl bg-background">
-                {p.image && (
-                  <img src={p.image} alt={p.name} className="w-8 h-8 rounded-full" />
-                )}
+                <UserAvatar image={p.image} name={p.name} size="sm" />
                 <span className="font-medium">{p.name}</span>
                 <span className="ml-auto text-sm text-foreground/50">
                   {p.role === 'SISTER' ? '👧 Bon' : '👦 Bhai'}

@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export default function MarketingPage() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -17,11 +18,7 @@ export default function MarketingPage() {
                 href="/dashboard"
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-white font-semibold text-sm hover:bg-pink-700 transition-colors shadow-sm"
               >
-                {user?.image ? (
-                  <img src={user.image} alt={user.name} className="w-5 h-5 rounded-full" />
-                ) : (
-                  <span>👤</span>
-                )}
+                <UserAvatar image={user?.image} name={user?.name} size="xs" />
                 <span>Dashboard →</span>
               </Link>
             ) : (
