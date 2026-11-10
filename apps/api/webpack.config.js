@@ -17,6 +17,7 @@ module.exports = function (options, webpack) {
           /^passport/,
           /^google-auth-library/,
           /^resend/,
+          /^@prisma\/client/,
           /^@bhaifota/,
         ],
       }),
