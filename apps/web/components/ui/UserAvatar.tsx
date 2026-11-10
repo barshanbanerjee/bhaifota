@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface UserAvatarProps {
   image?: string | null;
@@ -25,13 +25,17 @@ export function UserAvatar({
   const sizeClasses = SIZE_MAP[size];
   const initial = (name || '?').trim().charAt(0).toUpperCase();
 
+  // Reset error state if image URL changes
+  useEffect(() => {
+    setImageError(false);
+  }, [image]);
+
   if (image && !imageError) {
     return (
       <img
         src={image}
         alt={name || 'Avatar'}
         referrerPolicy="no-referrer"
-        crossOrigin="anonymous"
         onError={() => setImageError(true)}
         className={`${sizeClasses} rounded-full object-cover border border-black/10 shrink-0 ${className}`}
       />

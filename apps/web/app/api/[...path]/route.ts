@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 async function proxyToInternalApi(req: NextRequest) {
   // Read internal service binding injected by Vercel
-  const internalApiBase = process.env.API_URL || 'http://localhost:4000';
+  const internalApiBase = process.env.API_URL || 'http://127.0.0.1:4000';
   const targetUrl = new URL(req.nextUrl.pathname + req.nextUrl.search, internalApiBase);
 
   // Forward incoming headers (filtering out connection/host hop-by-hop headers)

@@ -14,9 +14,18 @@
     ]
   },
   "scripts": {
-    "dev": "pnpm --filter @bhaifota/web dev",
+    "dev": "concurrently -n \"web,api\" -c \"cyan,magenta\" \"pnpm --filter @bhaifota/web dev\" \"pnpm --filter @bhaifota/api start:dev\"",
+    "dev:web": "pnpm --filter @bhaifota/web dev",
+    "dev:api": "pnpm --filter @bhaifota/api start:dev",
     "build": "pnpm --filter @bhaifota/web build",
     "lint": "pnpm -r lint"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
